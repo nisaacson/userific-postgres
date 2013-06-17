@@ -1,4 +1,3 @@
-var SqlString = require('./lib/SqlString')
 var register = require('./lib/register')
 var authenticate = require('./lib/authenticate')
 var changeEmail = require('./lib/changeEmail')
@@ -16,7 +15,6 @@ function UserificPostGRES(config) {
   var conString = buildConnectionString(config)
   var client = new pg.Client(conString);
   var table = config.table
-  // table = SqlString.escape(table).replace(/'/g)
   this.init = function(cb) {
     client.connect(function(err) {
       if (err) {
