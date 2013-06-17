@@ -14,7 +14,6 @@ describe('Setup', function () {
     var backend = new UserificPostGRES(config)
     backend.init(function (err) {
       should.not.exist(err)
-      inspect('backend init done')
       done()
     })
   })
