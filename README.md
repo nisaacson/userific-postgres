@@ -23,17 +23,21 @@ var config = {
 
 
 var backend = new UserificPostGRES(config)
-// backend implements all the interface methods of the abstract Userific module
-var registerData = {
-    email: 'foo@example.com',
-    password: 'barPassword'
-}
-backend.register(registerData, function(err, user) {
-  if (err) {
-    inspect(err, 'error registering user via the userific mongoose backend')
-    return
+
+// you must call the asynchronous init function before this postgres backend can be used
+backend.init(function(err) {
+  // backend implements all the interface methods of the abstract Userific module
+  var registerData = {
+      email: 'foo@example.com',
+      password: 'barPassword'
   }
-  inspect(user, 'registered user correctly')
+  backend.register(registerData, function(err, user) {
+    if (err) {
+      inspect(err, 'error registering user via the userific mongoose backend')
+      return
+    }
+    inspect(user, 'registered user correctly')
+  })
 })
 ```
 

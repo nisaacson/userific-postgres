@@ -3,11 +3,11 @@ var UserificPostGRES = require('../')
 var inspect = require('eyespect').inspector()
 var config = {
   host: 'localhost',
-  port: '1234',
-  user: 'fooUser',
+  port: '5432',
+  user: '',
   db: 'userific-test',
   table: 'users',
-  pass: 'barPassword'
+  pass: ''
 }
 describe('Setup', function () {
   it('should create backend correctly', function (done) {

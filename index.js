@@ -1,17 +1,20 @@
-var register = require('register')
+var register = require('./lib/register')
 var authenticate = require('./lib/authenticate')
 var changeEmail = require('./lib/changeEmail')
+
 var changePassword = require('./lib/changePassword')
+
+
+var validateTable = require('./lib/validateTable')
 var pg = require('pg');
 var Userific = require('Userific')
-var inherits = require('util').inherits
-var inspect = require('eyespect').inspector();
+var inherits = require('util').inherits;
 
 function UserificPostGRES(config) {
   UserificPostGRES.super_.call(this)
   var conString = buildConnectionString(config)
-  inspect(conString,'postgre connection string')
   var client = new pg.Client(conString);
+  var table = config.table
   this.init = function(cb) {
     client.connect(function(err) {
       if (err) {
@@ -21,15 +24,9 @@ function UserificPostGRES(config) {
           stack: new Error().stack
         })
       }
-      client.query('SELECT NOW() AS "theTime"', function(err, result) {
-        console.log(result.rows[0].theTime);
-        cb()
-        //output: Tue Jan 15 2013 19:12:47 GMT-600 (CST)
-      })
+      validateTable(client, table, cb)
     })
   }
-  var table = config.table
-
   this.register = register(client, table)
   this.authenticate = authenticate(client, table)
   this.changeEmail = changeEmail(client, table)
