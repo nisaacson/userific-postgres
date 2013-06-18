@@ -1,7 +1,7 @@
 language: node_js
 
 before_script:
-  - psql -c 'create database userfic-test;' -U postgres
+  - psql -c 'create database "userific-test";' -U postgres
   - psql -d userific-test -f ./share/users.sql
 node_js:
     - "0.8"
