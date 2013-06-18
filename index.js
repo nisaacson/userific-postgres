@@ -8,7 +8,7 @@ var resetPassword = require('./lib/resetPassword')
 
 var validateTable = require('./lib/validateTable')
 var pg = require('pg');
-var Userific = require('Userific')
+var Userific = require('userific')
 var inherits = require('util').inherits;
 
 function UserificPostGRES(config) {
