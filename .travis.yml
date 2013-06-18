@@ -1,0 +1,10 @@
+language: node_js
+services:
+    postgres
+
+before_script:
+  - psql -c 'create database userfic-test;' -U postgres
+  - psql -d userific-test -f ./share/users.sql
+node_js:
+    - "0.8"
+    - "0.10"
