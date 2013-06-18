@@ -26,12 +26,13 @@
   "dependencies": {
     "pg": "~1.3.0",
     "userific": "0.0.4",
-    "bcrypt-nodejs": "0.0.3"
+    "bcrypt-nodejs": "0.0.3",
+    "node-uuid": "~1.4.0"
   },
   "devDependencies": {
     "eyespect": "~0.1.10",
     "should": "~1.2.2",
     "mocha": "~1.11.0",
-    "userific-test": "0.0.8"
+    "userific-test": "0.0.12"
   }
 }
