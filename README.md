@@ -1,5 +1,8 @@
 # Userfic PostGRES backend
 
+[![Build Status](https://travis-ci.org/nisaacson/userific-postgres.png)](https://travis-ci.org/nisaacson/userific-postgres)
+[![Dependency Status](https://david-dm.org/nisaacson/userific-postgres.png)](https://david-dm.org/nisaacson/userific-postgres)
+
 Manage users using a postgres database. This module implements the abstract [Userific](https://github.com/nisaacson/userific) interface
 
 # Installation
