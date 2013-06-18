@@ -23,7 +23,8 @@ CREATE TABLE users (
     email text,
     password text,
     confirmed boolean DEFAULT false,
-    confirm_token text
+    confirm_token text,
+    reset_token text
 );
 
 
@@ -33,6 +34,19 @@ CREATE TABLE users (
 
 ALTER TABLE ONLY users
     ADD CONSTRAINT pk_users PRIMARY KEY (id);
+
+
+--
+-- Name: unique_confirm_token; Type: INDEX; Schema: public; Tablespace:
+--
+
+CREATE UNIQUE INDEX unique_confirm_token ON users USING btree (confirm_token);
+
+--
+-- Name: unique_reset_token; Type: INDEX; Schema: public; Tablespace:
+--
+
+CREATE UNIQUE INDEX unique_reset_token ON users USING btree (reset_token);
 
 
 --

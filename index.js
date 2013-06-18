@@ -4,6 +4,7 @@ var changeEmail = require('./lib/changeEmail')
 
 var changePassword = require('./lib/changePassword')
 var confirmEmail = require('./lib/confirmEmail')
+var generatePasswordResetToken = require('./lib/generatePasswordResetToken')
 var resetPassword = require('./lib/resetPassword')
 
 var validateTable = require('./lib/validateTable')
@@ -37,6 +38,7 @@ function UserificPostGRES(config) {
   this.authenticate = authenticate(client, table)
   this.changeEmail = changeEmail(client, table)
   this.changePassword = changePassword(client, table)
+  this.generatePasswordResetToken = generatePasswordResetToken(client, table)
   this.resetPassword = resetPassword(client, table)
   this.confirmEmail = confirmEmail(client, table)
 }
