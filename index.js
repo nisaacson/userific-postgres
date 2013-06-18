@@ -3,7 +3,8 @@ var authenticate = require('./lib/authenticate')
 var changeEmail = require('./lib/changeEmail')
 
 var changePassword = require('./lib/changePassword')
-
+var confirmEmail = require('./lib/confirmEmail')
+var resetPassword = require('./lib/resetPassword')
 
 var validateTable = require('./lib/validateTable')
 var pg = require('pg');
@@ -24,13 +25,20 @@ function UserificPostGRES(config) {
           stack: new Error().stack
         })
       }
-      validateTable(client, table, cb)
+      validateTable(client, table, function(err) {
+        if (err) {
+          return cb(err)
+        }
+        cb(null, client)
+      })
     })
   }
   this.register = register(client, table)
   this.authenticate = authenticate(client, table)
   this.changeEmail = changeEmail(client, table)
   this.changePassword = changePassword(client, table)
+  this.resetPassword = resetPassword(client, table)
+  this.confirmEmail = confirmEmail(client, table)
 }
 
 function buildConnectionString(config) {
