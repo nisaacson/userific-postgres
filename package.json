@@ -33,6 +33,6 @@
     "eyespect": "~0.1.10",
     "should": "~1.2.2",
     "mocha": "~1.11.0",
-    "userific-test": "~0.2.0"
+    "userific-test": "~0.2.3"
   }
 }
