@@ -29,8 +29,9 @@ var config = {
   port: '27017',                  // the port of the postgres server
   db: 'userific-postgres-test',   // the postgres database to use,
   table: 'users'                  // the table name of where users are stored in the database
-  user: 'postgres username here',  // optional
-  pass: 'postgres password here',  // optional
+  user: 'postgres username here', // optional
+  pass: 'postgres password here', // optional
+  accessTokens: true         // optional, when true users must supply a valid accessToken value when registering
 }
 
 
@@ -41,7 +42,8 @@ backend.init(function(err) {
   // backend implements all the interface methods of the abstract Userific module
   var registerData = {
       email: 'foo@example.com',
-      password: 'barPassword'
+      password: 'barPassword',
+      accessToken: 'valid access token value here'
   }
   backend.register(registerData, function(err, user) {
     if (err) {

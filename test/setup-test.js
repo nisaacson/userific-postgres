@@ -3,6 +3,7 @@ var UserificPostGRES = require('../')
 var testSuite = require('userific-test')
 var inspect = require('eyespect').inspector()
 var assert = require('assert')
+var uuid = require('uuid')
 var backend
 var config = {
   host: 'localhost',
@@ -10,10 +11,12 @@ var config = {
   user: '',
   db: 'userific-test',
   table: 'users',
-  pass: ''
+  pass: '',
+  useAccessTokens: true
 }
 
 describe('Userific Postgres', function() {
+  this.timeout('20s')
   var client
   backend = new UserificPostGRES(config)
   before(function(done) {
@@ -25,40 +28,101 @@ describe('Userific Postgres', function() {
     })
   })
   beforeEach(function(done) {
-    var query = 'DELETE FROM ' + config.table
-    client.query(query, done)
+    var query = 'DELETE FROM users'
+    client.query(query, function(err) {
+      should.not.exist(err)
+      var query = 'DELETE FROM access_tokens'
+      client.query(query, function(err) {
+        should.not.exist(err)
+        var userID = uuid.v4()
+        var hash = 'fooPasswordHash'
+        var email = userData.email
+        client.query('INSERT INTO users (id, email, password, confirmed) VALUES ($1, $2, $3, $4)', [userID, email, hash, false], done)
+      })
+    })
   })
   var userData = {
     email: 'foo@example.com',
     password: 'barPassword'
   }
-  testSuite(backend)
 
-  // it('should register user', function(done) {
-  //   backend.register(userData, function(err, user) {
-  //     if (err) {
-  //       inspect(err, 'error registering user')
-  //     }
-  //     should.not.exist(err, 'error registering user')
-  //     assert.ok(!user.confirmed, 'user should not be confirmed after registration')
-  //     backend.authenticate(userData, function(err, authenticatedUser) {
-  //       should.exist(err, 'should not be able to authenticate unconfirmed user')
-  //       should.not.exist(authenticatedUser)
-  //       var confirmData = {
-  //         confirmToken: user.confirmToken
-  //       }
-  //       backend.confirmEmail(confirmData, function(err, reply) {
-  //         should.not.exist(err, 'error confirming email')
-  //         inspect(reply, 'confirm email reply')
-  //         backend.authenticate(userData, function(err, authenticatedUser) {
-  //           should.not.exist(err, 'should be able to authenticate unconfirmed user')
-  //           should.exist(authenticatedUser)
-  //           inspect(authenticatedUser, 'authenticated user')
+  it('should save access token for email', function(done) {
+    var email = userData.email
+    var accessToken = uuid.v4()
+    backend.saveAccessTokenForEmail(email, accessToken, function(err, reply) {
+      should.not.exist(err)
+      done()
+    })
+  })
 
-  //           done()
-  //         })
-  //       })
-  //     })
-  //   })
-  // })
+  it('should get access tokens for email', function(done) {
+    var email = userData.email
+    backend.getAccessTokensForEmail(email, function(err, tokens) {
+      should.not.exist(err)
+      tokens.length.should.eql(0)
+      var email = userData.email
+      var accessToken = uuid.v4()
+      backend.saveAccessTokenForEmail(email, accessToken, function(err, reply) {
+        should.not.exist(err)
+        backend.getAccessTokensForEmail(email, function(err, tokens) {
+          should.not.exist(err)
+          tokens.length.should.eql(1)
+          done()
+        })
+      })
+    })
+  })
+
+  it('should grant access tokens correctly', function(done) {
+    var email = userData.email
+    var accessToken = uuid.v4()
+    var maxNumTokens = 3
+    backend.grantAccessTokensForEmail(email, maxNumTokens, function(err) {
+      should.not.exist(err)
+      backend.getAccessTokensForEmail(email, function(err, tokens) {
+        should.not.exist(err)
+        tokens.length.should.eql(maxNumTokens)
+        done()
+      })
+    })
+  })
+
+  it('should not register user without valid access token ', function(done) {
+    var email = 'bar@example.com'
+    var password = 'barPassword'
+    var accessToken = uuid.v4()
+    var userData = {
+      email: email,
+      password: password,
+      accessToken: accessToken
+    }
+    backend.register(userData, function(err, reply) {
+      err.reason.should.eql('invalid_access_token')
+      done()
+    })
+  })
+
+  it('should register user with valid access token ', function(done) {
+    var existingEmail = userData.email
+    var accessToken = uuid.v4()
+    backend.saveAccessTokenForEmail(existingEmail, accessToken, function(err) {
+      var email = 'bar@example.com'
+      var password = 'barPassword'
+      var userData = {
+        email: email,
+        password: password,
+        accessToken: accessToken
+      }
+      backend.register(userData, function(err, reply) {
+        should.not.exist(err, 'register error')
+
+        // user should not have any access tokens until they confirm their email
+        backend.getAccessTokensForEmail(email, function(err, tokens) {
+          should.not.exist(err)
+          tokens.length.should.eql(0)
+          done()
+        })
+      })
+    })
+  })
 })

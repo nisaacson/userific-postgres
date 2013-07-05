@@ -6,6 +6,13 @@ var changePassword = require('./lib/changePassword')
 var confirmEmail = require('./lib/confirmEmail')
 var generatePasswordResetToken = require('./lib/generatePasswordResetToken')
 var resetPassword = require('./lib/resetPassword')
+var fetchUserByEmail = require('./lib/fetchUserByEmail')
+var validateAccessToken = require('./lib/validateAccessToken')
+var validateConfirmToken = require('./lib/validateConfirmToken')
+var validateResetToken = require('./lib/validateResetToken')
+var grantAccessTokensForEmail = require('./lib/grantAccessTokensForEmail')
+var saveAccessTokenForEmail = require('./lib/saveAccessTokenForEmail')
+var getAccessTokensForEmail = require('./lib/getAccessTokensForEmail')
 
 var validateTable = require('./lib/validateTable')
 var pg = require('pg');
@@ -26,21 +33,23 @@ function UserificPostGRES(config) {
           stack: new Error().stack
         })
       }
-      validateTable(client, table, function(err) {
-        if (err) {
-          return cb(err)
-        }
-        cb(null, client)
-      })
+      cb(null, client)
     })
   }
-  this.register = register(client, table)
-  this.authenticate = authenticate(client, table)
-  this.changeEmail = changeEmail(client, table)
-  this.changePassword = changePassword(client, table)
-  this.generatePasswordResetToken = generatePasswordResetToken(client, table)
-  this.resetPassword = resetPassword(client, table)
-  this.confirmEmail = confirmEmail(client, table)
+  this.register = register(client, config.useAccessTokens)
+  this.authenticate = authenticate(client)
+  this.changeEmail = changeEmail(client)
+  this.changePassword = changePassword(client)
+  this.generatePasswordResetToken = generatePasswordResetToken(client)
+  this.resetPassword = resetPassword(client)
+  this.confirmEmail = confirmEmail(client)
+  this.fetchUserByEmail = fetchUserByEmail(client)
+  this.validateAccessToken = validateAccessToken(client)
+  this.validateConfirmToken = validateConfirmToken(client)
+  this.validateResetToken = validateResetToken(client)
+  this.grantAccessTokensForEmail = grantAccessTokensForEmail(client)
+  this.getAccessTokensForEmail = getAccessTokensForEmail(client)
+  this.saveAccessTokenForEmail = saveAccessTokenForEmail(client)
 }
 
 function buildConnectionString(config) {
