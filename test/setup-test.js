@@ -141,6 +141,35 @@ describe('Userific Postgres', function() {
       })
     })
   })
+
+  it('should change email correctly', function(done) {
+    var email = userData.email
+    testRegister(userData, function(err, user) {
+      testConfirmEmail(email, function(err, user) {
+        testAuthenticate(userData, function(err, user) {
+          should.not.exist(err)
+          var newEmail = 'fizzbuzz@example.com'
+          newEmail.should.not.eql(user.email)
+          var changeData = {
+            currentEmail: user.email,
+            newEmail: newEmail
+          }
+          backend.changeEmail(changeData, function(err, reply) {
+            if (err) {
+              inspect(err, 'error changing email')
+            }
+            should.not.exist(err, 'error changing email')
+            var authData = {
+              email: newEmail,
+              password: userData.password
+            }
+            testAuthenticate(authData, done)
+          })
+        })
+      })
+    })
+  })
+
   it('should grant role for email ', function(done) {
     testRegister(userData, function(err, user) {
       var role = 'admin'
