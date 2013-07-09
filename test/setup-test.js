@@ -206,6 +206,38 @@ describe('Userific Postgres', function() {
     })
   })
 
+  it.only('should not reset password with incorrect reset token', function(done) {
+    var email = userData.email
+    testRegister(userData, function(err, user) {
+      testConfirmEmail(email, function(err, user) {
+        testAuthenticate(userData, function(err, user) {
+          var generateData = {
+            email: email
+          }
+          backend.generatePasswordResetToken(generateData, function(err, reply) {
+            if (err) {
+              inspect(err, 'error generating password reset token')
+            }
+            should.not.exist(err, 'error generating password reset token')
+            var resetToken = reply.resetToken
+            should.exist(resetToken)
+            var fakeResetToken = uuid.v4()
+            fakeResetToken.should.not.eql(resetToken)
+            var resetData = {
+              resetToken: fakeResetToken
+            }
+            backend.resetPassword(resetData, function(err, newRawPassword) {
+              should.exist(err, 'should get error resetting password')
+              err.reason.should.eql('invalid_reset_token')
+              should.not.exist(newRawPassword)
+              done()
+            })
+          })
+        })
+      })
+    })
+  })
+
   it('should change password correctly', function(done) {
     var email = userData.email
     testRegister(userData, function(err, user) {
