@@ -170,6 +170,84 @@ describe('Userific Postgres', function() {
     })
   })
 
+  it('should reset password correctly', function(done) {
+    var email = userData.email
+    testRegister(userData, function(err, user) {
+      testConfirmEmail(email, function(err, user) {
+        testAuthenticate(userData, function(err, user) {
+          var generateData = {
+            email: email
+          }
+          backend.generatePasswordResetToken(generateData, function(err, reply) {
+            if (err) {
+              inspect(err, 'error generating password reset token')
+            }
+            should.not.exist(err, 'error generating password reset token')
+            var resetToken = reply.resetToken
+            should.exist(resetToken)
+            var resetData = {
+              resetToken: resetToken
+            }
+            backend.resetPassword(resetData, function(err, newRawPassword) {
+              if (err) {
+                inspect(err, 'error resetting password')
+              }
+              should.not.exist(err, 'error resetting password')
+              should.exist(newRawPassword, 'new raw password not returned')
+              var authData = {
+                email: email,
+                password: newRawPassword
+              }
+              testAuthenticate(authData, done)
+            })
+          })
+        })
+      })
+    })
+  })
+
+  it('should change password correctly', function(done) {
+    var email = userData.email
+    testRegister(userData, function(err, user) {
+      testConfirmEmail(email, function(err, user) {
+        testAuthenticate(userData, function(err, user) {
+          var newPassword = 'barPassword2'
+          var currentPassword = userData.password
+          newPassword.should.not.eql(currentPassword)
+          var changeData = {
+            email: email,
+            currentPassword: currentPassword,
+            newPassword: newPassword
+          }
+
+          backend.changePassword(changeData, function(err, reply) {
+            if (err) {
+              inspect(err, 'error changing password')
+            }
+            should.not.exist(err, 'error changing password')
+            var authData = {
+              email: email,
+              password: newPassword
+            }
+            testAuthenticate(authData, function(err, user) {
+              should.not.exist(err)
+              // should not be able to authenticate with old password
+              var oldAuthData = {
+                email: email,
+                password: currentPassword
+              }
+              backend.authenticate(userData, function(err, reply) {
+                should.not.exist(err)
+                should.not.exist(reply, 'no user should be returned authenticate function')
+                done()
+              })
+            })
+          })
+        })
+      })
+    })
+  })
+
   it('should grant role for email ', function(done) {
     testRegister(userData, function(err, user) {
       var role = 'admin'
@@ -226,7 +304,7 @@ function testRegister(userData, cb) {
 function testAuthenticate(userData, cb) {
   backend.authenticate(userData, function(err, reply) {
     should.not.exist(err)
-    should.exist(reply)
+    should.exist(reply, 'no user returned from authenticate function')
     reply.email.should.eql(userData.email)
     should.exist(reply._id, '_id should be set on user reply')
     cb(null, reply)
