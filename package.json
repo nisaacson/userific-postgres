@@ -1,6 +1,6 @@
 {
   "name": "userific-postgres",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "description": "postgres based backend that implements the userific interface",
   "main": "index.js",
   "directories": {
