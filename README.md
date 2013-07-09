@@ -31,7 +31,7 @@ var config = {
   table: 'users'                  // the table name of where users are stored in the database
   user: 'postgres username here', // optional
   pass: 'postgres password here', // optional
-  accessTokens: true         // optional, when true users must supply a valid accessToken value when registering
+  useAccessTokens: true         // optional, when true users must supply a valid accessToken value when registering
 }
 
 
