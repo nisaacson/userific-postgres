@@ -14,10 +14,11 @@ var config = {
   pass: '',
   useAccessTokens: true
 }
-
+var registeredUserEmail = 'buzz@example.com'
+var client
 describe('Userific Postgres', function() {
   this.timeout('20s')
-  var client
+
   backend = new UserificPostGRES(config)
   before(function(done) {
     backend.init(function(err, clientReply) {
@@ -36,8 +37,7 @@ describe('Userific Postgres', function() {
         should.not.exist(err)
         var userID = uuid.v4()
         var hash = 'fooPasswordHash'
-        var email = userData.email
-        client.query('INSERT INTO users (id, email, password, confirmed) VALUES ($1, $2, $3, $4)', [userID, email, hash, false], done)
+        client.query('INSERT INTO users (id, email, password, confirmed) VALUES ($1, $2, $3, $4)', [userID, registeredUserEmail, hash, false], done)
       })
     })
   })
@@ -47,24 +47,21 @@ describe('Userific Postgres', function() {
   }
 
   it('should save access token for email', function(done) {
-    var email = userData.email
     var accessToken = uuid.v4()
-    backend.saveAccessTokenForEmail(email, accessToken, function(err, reply) {
+    backend.saveAccessTokenForEmail(registeredUserEmail, accessToken, function(err, reply) {
       should.not.exist(err)
       done()
     })
   })
 
   it('should get access tokens for email', function(done) {
-    var email = userData.email
-    backend.getAccessTokensForEmail(email, function(err, tokens) {
+    backend.getAccessTokensForEmail(registeredUserEmail, function(err, tokens) {
       should.not.exist(err)
       tokens.length.should.eql(0)
-      var email = userData.email
       var accessToken = uuid.v4()
-      backend.saveAccessTokenForEmail(email, accessToken, function(err, reply) {
+      backend.saveAccessTokenForEmail(registeredUserEmail, accessToken, function(err, reply) {
         should.not.exist(err)
-        backend.getAccessTokensForEmail(email, function(err, tokens) {
+        backend.getAccessTokensForEmail(registeredUserEmail, function(err, tokens) {
           should.not.exist(err)
           tokens.length.should.eql(1)
           done()
@@ -74,12 +71,11 @@ describe('Userific Postgres', function() {
   })
 
   it('should grant access tokens correctly', function(done) {
-    var email = userData.email
     var accessToken = uuid.v4()
     var maxNumTokens = 3
-    backend.grantAccessTokensForEmail(email, maxNumTokens, function(err) {
+    backend.grantAccessTokensForEmail(registeredUserEmail, maxNumTokens, function(err) {
       should.not.exist(err)
-      backend.getAccessTokensForEmail(email, function(err, tokens) {
+      backend.getAccessTokensForEmail(registeredUserEmail, function(err, tokens) {
         should.not.exist(err)
         tokens.length.should.eql(maxNumTokens)
         done()
@@ -103,35 +99,12 @@ describe('Userific Postgres', function() {
   })
 
   it('should register user with valid access token ', function(done) {
-    var existingEmail = userData.email
-    var accessToken = uuid.v4()
-    backend.saveAccessTokenForEmail(existingEmail, accessToken, function(err) {
-      var email = 'bar@example.com'
-      var password = 'barPassword'
-      var userData = {
-        email: email,
-        password: password,
-        accessToken: accessToken
-      }
-      backend.register(userData, function(err, reply) {
-        should.not.exist(err, 'register error')
-        should.exist(reply)
-        reply.email.should.eql(userData.email)
-
-        // user should not have any access tokens until they confirm their email
-        backend.getAccessTokensForEmail(email, function(err, tokens) {
-          should.not.exist(err)
-          tokens.length.should.eql(0)
-          done()
-        })
-      })
-    })
+    testRegister(userData, done)
   })
 
   it('should not register user with the same access token twice', function(done) {
-    var existingEmail = userData.email
     var accessToken = uuid.v4()
-    backend.saveAccessTokenForEmail(existingEmail, accessToken, function(err) {
+    backend.saveAccessTokenForEmail(registeredUserEmail, accessToken, function(err) {
       var email = 'bar@example.com'
       var password = 'barPassword'
       var userData = {
@@ -153,29 +126,76 @@ describe('Userific Postgres', function() {
     })
   })
 
+  it('should confirm email correctly', function(done) {
+    testRegister(userData, function(err, user) {
+      should.not.exist(err)
+      var email = user.email
+      testConfirmEmail(email, done)
+    })
+  })
+
   it('should grant role for email ', function(done) {
-    var existingEmail = userData.email
-    var accessToken = uuid.v4()
-    backend.saveAccessTokenForEmail(existingEmail, accessToken, function(err) {
-      var email = 'bar@example.com'
-      var password = 'barPassword'
-      var userData = {
-        email: email,
-        password: password,
-        accessToken: accessToken
-      }
-      backend.register(userData, function(err, reply) {
-        var role = 'admin'
-        backend.grantRoleForEmail(role, email, function(err, reply) {
+    testRegister(userData, function(err, user) {
+      var role = 'admin'
+      var email = user.email
+      backend.grantRoleForEmail(role, email, function(err, reply) {
+        should.not.exist(err)
+        backend.getRolesForEmail(email, function(err, roles) {
           should.not.exist(err)
-          backend.getRolesForEmail(email, function (err, roles) {
-            should.not.exist(err)
-            roles.length.should.eql(1)
-            roles[0].should.eql(role)
-            done()
-          })
+          roles.length.should.eql(1)
+          roles[0].should.eql(role)
+          done()
         })
       })
     })
   })
-})
+});
+
+function testConfirmEmail(email, cb) {
+  getConfirmTokenForEmail(email, function(err, confirmToken) {
+    if (err) {
+      return cb(err)
+    }
+    should.exist(confirmToken)
+    var confirmData = {
+      email: email,
+      confirmToken: confirmToken
+    }
+    backend.confirmEmail(confirmData, function(err, reply) {
+      if (err) {
+        inspect(err, 'error confirming email')
+      }
+      should.not.exist(err, 'error confirming email')
+      reply.confirmed.should.eql(true)
+      reply.email.should.eql(email)
+      cb();
+    })
+  })
+}
+
+function testRegister(userData, cb) {
+  var accessToken = uuid.v4()
+  backend.saveAccessTokenForEmail(registeredUserEmail, accessToken, function(err) {
+    userData.accessToken = accessToken
+    should.not.exist(err)
+    backend.register(userData, function(err, reply) {
+      should.not.exist(err)
+      should.exist(reply)
+      reply.email.should.eql(userData.email)
+      cb(null, reply)
+    })
+  })
+}
+
+function getConfirmTokenForEmail(email, cb) {
+  var query = 'SELECT confirm_token from users where email = $1'
+  client.query(query, [email], function(err, reply) {
+    should.not.exist(err, 'error getting confirm code')
+    var rows = reply.rows
+    rows.length.should.eql(1)
+    var record = rows[0]
+    var confirmToken = record.confirm_token
+    should.exist(confirmToken, 'confirmToken not found')
+    return cb(null, confirmToken)
+  })
+}
