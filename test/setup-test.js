@@ -148,4 +148,30 @@ describe('Userific Postgres', function() {
       })
     })
   })
+
+  it('should grant role for email ', function(done) {
+    var existingEmail = userData.email
+    var accessToken = uuid.v4()
+    backend.saveAccessTokenForEmail(existingEmail, accessToken, function(err) {
+      var email = 'bar@example.com'
+      var password = 'barPassword'
+      var userData = {
+        email: email,
+        password: password,
+        accessToken: accessToken
+      }
+      backend.register(userData, function(err, reply) {
+        var role = 'admin'
+        backend.grantRoleForEmail(role, email, function(err, reply) {
+          should.not.exist(err)
+          backend.getRolesForEmail(email, function (err, roles) {
+            should.not.exist(err)
+            roles.length.should.eql(1)
+            roles[0].should.eql(role)
+            done()
+          })
+        })
+      })
+    })
+  })
 })

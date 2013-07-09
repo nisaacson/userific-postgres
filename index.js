@@ -14,6 +14,7 @@ var grantAccessTokensForEmail = require('./lib/grantAccessTokensForEmail')
 var saveAccessTokenForEmail = require('./lib/saveAccessTokenForEmail')
 var getAccessTokensForEmail = require('./lib/getAccessTokensForEmail')
 var grantRoleForEmail = require('./lib/grantRoleForEmail')
+var getRolesForEmail = require('./lib/getRolesForEmail')
 
 var validateTable = require('./lib/validateTable')
 var pg = require('pg');
@@ -52,6 +53,7 @@ function UserificPostGRES(config) {
   this.getAccessTokensForEmail = getAccessTokensForEmail(client)
   this.saveAccessTokenForEmail = saveAccessTokenForEmail(client)
   this.grantRoleForEmail = grantRoleForEmail(client)
+  this.getRolesForEmail = getRolesForEmail(client)
 }
 
 function buildConnectionString(config) {
