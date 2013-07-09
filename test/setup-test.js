@@ -133,7 +133,14 @@ describe('Userific Postgres', function() {
       testConfirmEmail(email, done)
     })
   })
-
+  it('should authenticate correctly', function(done) {
+    var email = userData.email
+    testRegister(userData, function(err, user) {
+      testConfirmEmail(email, function(err, user) {
+        testAuthenticate(userData, done)
+      })
+    })
+  })
   it('should grant role for email ', function(done) {
     testRegister(userData, function(err, user) {
       var role = 'admin'
@@ -184,6 +191,16 @@ function testRegister(userData, cb) {
       reply.email.should.eql(userData.email)
       cb(null, reply)
     })
+  })
+}
+
+function testAuthenticate(userData, cb) {
+  backend.authenticate(userData, function(err, reply) {
+    should.not.exist(err)
+    should.exist(reply)
+    reply.email.should.eql(userData.email)
+    should.exist(reply._id, '_id should be set on user reply')
+    cb(null, reply)
   })
 }
 
