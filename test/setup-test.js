@@ -125,4 +125,27 @@ describe('Userific Postgres', function() {
       })
     })
   })
+
+  it('should not register user with the same access token twice', function(done) {
+    var existingEmail = userData.email
+    var accessToken = uuid.v4()
+    backend.saveAccessTokenForEmail(existingEmail, accessToken, function(err) {
+      var email = 'bar@example.com'
+      var password = 'barPassword'
+      var userData = {
+        email: email,
+        password: password,
+        accessToken: accessToken
+      }
+      backend.register(userData, function(err, reply) {
+        should.not.exist(err, 'register error')
+        userData.email = 'bar2@example.com'
+        backend.register(userData, function(err, reply) {
+          should.exist(err)
+          err.reason.should.eql('access_token_already_used')
+          done()
+        })
+      })
+    })
+  })
 })

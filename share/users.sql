@@ -78,6 +78,16 @@ CREATE TABLE users (
 
 
 --
+-- Name: users_roles; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE users_roles (
+    user_id uuid NOT NULL,
+    role_id uuid NOT NULL
+);
+
+
+--
 -- Data for Name: access_tokens; Type: TABLE DATA; Schema: public; Owner: -
 --
 
@@ -101,6 +111,14 @@ admin	95e4fdb4-f1e7-49f5-90fd-12f4ae5187c3
 --
 
 COPY users (id, email, password, confirmed, confirm_token, reset_token) FROM stdin;
+\.
+
+
+--
+-- Data for Name: users_roles; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY users_roles (user_id, role_id) FROM stdin;
 \.
 
 
@@ -142,6 +160,14 @@ ALTER TABLE ONLY roles
 
 ALTER TABLE ONLY users
     ADD CONSTRAINT users_email_unique UNIQUE (email);
+
+
+--
+-- Name: users_roles_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY users_roles
+    ADD CONSTRAINT users_roles_pkey PRIMARY KEY (user_id, role_id);
 
 
 --
