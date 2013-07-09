@@ -206,7 +206,7 @@ describe('Userific Postgres', function() {
     })
   })
 
-  it.only('should not reset password with incorrect reset token', function(done) {
+  it('should not reset password with incorrect reset token', function(done) {
     var email = userData.email
     testRegister(userData, function(err, user) {
       testConfirmEmail(email, function(err, user) {
