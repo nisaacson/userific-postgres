@@ -28,7 +28,8 @@
     "userific": "0.0.4",
     "bcrypt-nodejs": "0.0.3",
     "node-uuid": "~1.4.0",
-    "uuid": "~1.4.1"
+    "uuid": "~1.4.1",
+    "async": "~0.2.9"
   },
   "devDependencies": {
     "eyespect": "~0.1.10",
