@@ -115,6 +115,8 @@ describe('Userific Postgres', function() {
       }
       backend.register(userData, function(err, reply) {
         should.not.exist(err, 'register error')
+        should.exist(reply)
+        reply.email.should.eql(userData.email)
 
         // user should not have any access tokens until they confirm their email
         backend.getAccessTokensForEmail(email, function(err, tokens) {
@@ -139,6 +141,8 @@ describe('Userific Postgres', function() {
       }
       backend.register(userData, function(err, reply) {
         should.not.exist(err, 'register error')
+        should.exist(reply)
+        reply.email.should.eql(userData.email)
         userData.email = 'bar2@example.com'
         backend.register(userData, function(err, reply) {
           should.exist(err)
